@@ -1,0 +1,10 @@
+services:
+  mysql:
+    image: 'mysql:latest'
+    environment:
+      - 'MYSQL_DATABASE=brainbusterdb'
+      - 'MYSQL_PASSWORD=rootroot'
+      - 'MYSQL_ROOT_PASSWORD=rootroot'
+      - 'MYSQL_USER=user'
+    ports:
+      - '3306'
