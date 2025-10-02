@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: "mysql:latest"
+    image: "mysql:8.0"
     container_name: brainbuster-mysql
     environment:
       - "MYSQL_DATABASE=brainbusterdb"
