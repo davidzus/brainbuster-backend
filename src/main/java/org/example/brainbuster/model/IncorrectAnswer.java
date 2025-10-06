@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
 
 @Entity
 @Data
@@ -21,6 +20,7 @@ public class IncorrectAnswer {
     @Column(name = "answer_text", nullable = false, unique = true, columnDefinition = "TEXT")
     private String answerText;
 
-    @ManyToMany(mappedBy = "incorrectAnswers", fetch = FetchType.LAZY)
-    private Set<Question> questions;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "question_id", nullable = false)
+    private Question question;
 }

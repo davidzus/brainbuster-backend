@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -33,11 +34,20 @@ public class Question {
     @Column(name = "correct_answer", nullable = false, columnDefinition = "TEXT")
     private String correctAnswer;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "question_incorrect_answers",
-            joinColumns = @JoinColumn(name = "question_id"),
-            inverseJoinColumns = @JoinColumn(name = "incorrect_answer_id")
+    @OneToMany(
+            mappedBy = "question",
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
     )
-    private Set<IncorrectAnswer> incorrectAnswers;
+    private Set<IncorrectAnswer> incorrectAnswers = new HashSet<>();
+
+    public void addIncorrectAnswer(IncorrectAnswer ia) {
+        incorrectAnswers.add(ia);
+        ia.setQuestion(this);
+    }
+    public void removeIncorrectAnswer(IncorrectAnswer ia) {
+        incorrectAnswers.remove(ia);
+        ia.setQuestion(null);
+    }
 }
