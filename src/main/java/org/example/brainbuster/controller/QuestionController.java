@@ -1,13 +1,16 @@
 package org.example.brainbuster.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.brainbuster.questiondto.QuestionCreateDto;
+import org.example.brainbuster.questiondto.QuestionReadDto;
 import org.example.brainbuster.model.Question;
+import org.example.brainbuster.questiondto.QuestionUpdateDto;
 import org.example.brainbuster.service.QuestionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/questions")
@@ -21,27 +24,38 @@ public class QuestionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Question> getQuestionById(@PathVariable Long id) {
-        Optional<Question> question = questionService.getQuestionById(id);
-        return question.map(ResponseEntity::ok)
+    public ResponseEntity<QuestionReadDto> getQuestionById(@PathVariable("id") Long id) {
+        return questionService.getQuestionByIdDto(id)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Question createQuestion(@RequestBody Question question) {
-        return questionService.createQuestion(question);
+    @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
+    public QuestionReadDto createQuestion(@Valid @RequestBody QuestionCreateDto body) {
+        var saved = questionService.createQuestion(body);
+        return questionService.toReadDto(saved);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Question> updateQuestion(@PathVariable Long id, @RequestBody Question question) {
-        question.setId(id);
-        Question updatedQuestion = questionService.updateQuestion(question);
-        return ResponseEntity.ok(updatedQuestion);
+    public ResponseEntity<QuestionReadDto> updateQuestion(
+            @PathVariable("id") Long id,
+            @Valid @RequestBody QuestionUpdateDto body) {
+        try {
+            var saved = questionService.updateQuestion(id, body);
+            return ResponseEntity.ok(questionService.toReadDto(saved));
+        } catch (IllegalArgumentException notFound) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
-        questionService.deleteQuestion(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> deleteQuestion(@PathVariable("id") Long id) {
+        try {
+            questionService.deleteQuestion(id);
+            return ResponseEntity.noContent().build(); // 204
+        } catch (jakarta.persistence.EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();  // 404
+        }
     }
 }
