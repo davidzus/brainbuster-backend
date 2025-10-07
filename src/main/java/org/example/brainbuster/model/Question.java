@@ -1,31 +1,35 @@
 package org.example.brainbuster.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor @AllArgsConstructor
 @Table(name = "questions")
+@ToString(exclude = "incorrectAnswers")
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Question {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(name = "type", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "type", nullable = false, length = 50)
     private String type;
 
-    @Column(name = "difficulty", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "difficulty", nullable = false, length = 50)
     private String difficulty;
 
-    @Column(name = "category", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "category", nullable = false, length = 100)
     private String category;
 
     @Column(name = "question", nullable = false, columnDefinition = "TEXT")
@@ -40,7 +44,8 @@ public class Question {
             orphanRemoval = true,
             fetch = FetchType.LAZY
     )
-    private Set<IncorrectAnswer> incorrectAnswers = new HashSet<>();
+    @jakarta.persistence.OrderColumn(name = "position") // optional
+    private java.util.List<IncorrectAnswer> incorrectAnswers = new java.util.ArrayList<>();
 
     public void addIncorrectAnswer(IncorrectAnswer ia) {
         incorrectAnswers.add(ia);
