@@ -1,8 +1,8 @@
 package org.example.brainbuster.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.brainbuster.dto.userdto.UserResponse;
-import org.example.brainbuster.dto.userdto.UserRequest;
+import org.example.brainbuster.dto.user.UserRequest;
+import org.example.brainbuster.dto.user.UserResponse;
 import org.example.brainbuster.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

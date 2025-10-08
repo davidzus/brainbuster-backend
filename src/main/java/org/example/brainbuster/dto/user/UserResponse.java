@@ -1,4 +1,4 @@
-package org.example.brainbuster.dto.userdto;
+package org.example.brainbuster.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
