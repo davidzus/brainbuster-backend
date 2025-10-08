@@ -1,11 +1,10 @@
 package org.example.brainbuster.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.brainbuster.dto.userdto.UserRequest;
-import org.example.brainbuster.dto.userdto.UserResponse;
+import org.example.brainbuster.dto.user.UserRequest;
+import org.example.brainbuster.dto.user.UserResponse;
 import org.example.brainbuster.model.User;
 import org.example.brainbuster.repository.UserRepository;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,66 +15,55 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final PasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
 
-    private UserResponse toResponse(User user) {
+    private UserResponse toUserResponse(User user) {
         return new UserResponse(
-                user.getId(),
-                user.getUsername(),
-                user.getRole(),
-                user.getHighScore(),
-                user.getCreatedAt()
+            user.getId(),
+            user.getUsername(),
+            user.getRole(),
+            user.getHighScore(),
+            user.getCreatedAt()
         );
     }
 
     private User toEntity(UserRequest userRequest) {
         User user = new User();
         user.setUsername(userRequest.getUsername());
-        user.setPasswordHash(encoder.encode(userRequest.getPassword()));
+        user.setPasswordHash(passwordEncoder.encode(userRequest.getPassword()));
         user.setRole(userRequest.getRole() != null ? userRequest.getRole() : "user");
         user.setHighScore(0);
         return user;
     }
 
     public UserResponse createUser(UserRequest userRequest) {
-        if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
-            throw new RuntimeException("Username already exists: " + userRequest.getUsername());
-        }
-
         User user = toEntity(userRequest);
         User savedUser = userRepository.save(user);
-        return toResponse(savedUser);
+        return toUserResponse(savedUser);
     }
 
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(this::toResponse)
+                .map(this::toUserResponse)
                 .collect(Collectors.toList());
     }
 
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-        return toResponse(user);
+        return toUserResponse(user);
     }
 
     public UserResponse updateUser(Long id, UserRequest userRequest) {
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-
-        existingUser.setUsername(userRequest.getUsername());
-
-        if (userRequest.getPassword() != null && !userRequest.getPassword().isEmpty()) {
-            existingUser.setPasswordHash(encoder.encode(userRequest.getPassword()));
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("User not found with id: " + id);
         }
-
-        if (userRequest.getRole() != null) {
-            existingUser.setRole(userRequest.getRole());
-        }
-
-        User updatedUser = userRepository.save(existingUser);
-        return toResponse(updatedUser);
+        
+        User user = toEntity(userRequest);
+        user.setId(id);
+        User updatedUser = userRepository.save(user);
+        return toUserResponse(updatedUser);
     }
 
     public void deleteUser(Long id) {
@@ -85,22 +73,13 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public boolean checkPassword(String rawPassword, String encodedPassword) {
-        return encoder.matches(rawPassword, encodedPassword);
-    }
-
-    public boolean authenticate(String username, String password) {
-        try {
-            User user = findByUsername(username);
-            return checkPassword(password, user.getPasswordHash());
-        } catch (RuntimeException e) {
-            return false;
-        }
+    public User getUserEntityById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
     }
-
 }
