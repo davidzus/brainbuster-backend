@@ -1,4 +1,4 @@
-package org.example.brainbuster.questiondto;
+package org.example.brainbuster.dto.question;
 
 import java.util.List;
 

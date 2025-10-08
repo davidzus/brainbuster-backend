@@ -2,10 +2,10 @@ package org.example.brainbuster.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.brainbuster.questiondto.QuestionCreateDto;
-import org.example.brainbuster.questiondto.QuestionReadDto;
+import org.example.brainbuster.dto.question.QuestionCreateDto;
+import org.example.brainbuster.dto.question.QuestionReadDto;
 import org.example.brainbuster.model.Question;
-import org.example.brainbuster.questiondto.QuestionUpdateDto;
+import org.example.brainbuster.dto.question.QuestionUpdateDto;
 import org.example.brainbuster.service.QuestionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

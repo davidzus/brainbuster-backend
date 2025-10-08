@@ -1,12 +1,15 @@
-package org.example.brainbuster.questiondto;
+package org.example.brainbuster.dto.question;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-public record QuestionUpdateDto(
+import java.util.List;
+
+public record QuestionCreateDto(
         @NotBlank String type,
         @NotBlank String difficulty,
         @NotBlank String category,
         @NotBlank String question,
         @NotBlank String correctAnswer,
-        java.util.List<@NotBlank String> incorrectAnswers
+        @Size(min = 1) List<@NotBlank String> incorrectAnswers
 ) {}

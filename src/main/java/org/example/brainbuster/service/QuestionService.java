@@ -1,9 +1,9 @@
 package org.example.brainbuster.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.brainbuster.questiondto.QuestionCreateDto;
-import org.example.brainbuster.questiondto.QuestionReadDto;
-import org.example.brainbuster.questiondto.QuestionUpdateDto;
+import org.example.brainbuster.dto.question.QuestionCreateDto;
+import org.example.brainbuster.dto.question.QuestionReadDto;
+import org.example.brainbuster.dto.question.QuestionUpdateDto;
 import org.example.brainbuster.model.IncorrectAnswer;
 import org.example.brainbuster.model.Question;
 import org.example.brainbuster.repository.QuestionRepository;
