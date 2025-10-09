@@ -3,6 +3,8 @@ package org.example.brainbuster.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.brainbuster.dto.auth.AuthResponse;
 import org.example.brainbuster.dto.auth.LoginRequest;
+import org.example.brainbuster.dto.auth.RefreshRequest;
+import org.example.brainbuster.dto.auth.ValidateRequest;
 import org.example.brainbuster.dto.user.UserRequest;
 import org.example.brainbuster.dto.user.UserResponse;
 import org.example.brainbuster.model.User;
@@ -57,16 +59,16 @@ public class AuthController {
     }
 
     @PostMapping("/validate")
-    public ResponseEntity<Boolean> validateToken(@RequestBody Map<String, String> request) {
-        String token = request.get("token");
-        String username = request.get("username");
+    public ResponseEntity<Boolean> validateToken(@RequestBody ValidateRequest request) {
+        String token = request.getToken();
+        String username = request.getUsername();
         boolean isValid = authService.validateToken(token, username);
         return ResponseEntity.ok(isValid);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refreshToken(@RequestBody Map<String, String> request) {
-        String refreshToken = request.get("refreshToken");
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshRequest request) {
+        String refreshToken = request.getRefreshToken();
 
         try {
             String username = jwtService.extractUsername(refreshToken);
