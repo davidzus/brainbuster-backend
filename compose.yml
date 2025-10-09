@@ -11,6 +11,47 @@ services:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+    networks:
+      - brainbuster-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-prootroot",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: brainbuster-app
+    ports:
+      - "8080:8080"
+    environment:
+      - "SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/brainbusterdb"
+      - "SPRING_DATASOURCE_USERNAME=root"
+      - "SPRING_DATASOURCE_PASSWORD=rootroot"
+      - "SPRING_JPA_HIBERNATE_DDL_AUTO=update"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - brainbuster-network
+    restart: unless-stopped
+
+networks:
+  brainbuster-network:
+    driver: bridge
 
 volumes:
   mysql-data:
