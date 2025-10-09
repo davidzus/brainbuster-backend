@@ -16,31 +16,24 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // İzin verilen origin'ler - localhost:5173 (Vite) ve 3000 (React)
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:5173",
             "http://localhost:3000",
             "http://127.0.0.1:5173"
         ));
         
-        // İzin verilen HTTP metotları
         configuration.setAllowedMethods(Arrays.asList(
             "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
         ));
         
-        // İzin verilen header'lar
         configuration.setAllowedHeaders(Arrays.asList("*"));
         
-        // Authorization header'ı gibi credential'ları göndermeye izin ver
         configuration.setAllowCredentials(true);
         
-        // Preflight request cache süresi (1 saat)
         configuration.setMaxAge(3600L);
         
-        // Exposed header'lar (frontend'in okuyabileceği custom header'lar)
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
         
-        // Tüm path'lere bu yapılandırmayı uygula
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         
