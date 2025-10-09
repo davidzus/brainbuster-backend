@@ -24,19 +24,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            // CORS'u etkinleştir ve yapılandırmayı kullan
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
             
+            // CSRF korumasını devre dışı bırak (REST API için)
             .csrf(csrf -> csrf.disable())
             
-            // Session management - stateless JWT 
+            // Session management - stateless (JWT için)
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             
             // Authorization rules
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()  // Auth endpoint
-                .requestMatchers("/api/**").permitAll()      
+                .requestMatchers("/api/auth/**").permitAll()  // Auth endpoint'leri herkese açık
+                .requestMatchers("/api/**").permitAll()        // Şimdilik tüm API'yi aç (sonra düzenleyebilirsiniz)
                 .anyRequest().authenticated()
             );
         
