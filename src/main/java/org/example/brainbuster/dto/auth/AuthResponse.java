@@ -10,6 +10,7 @@ import org.example.brainbuster.dto.user.UserResponse;
 @AllArgsConstructor
 public class AuthResponse {
     private String token;
+    private String refreshToken;
     private UserResponse user;
     private String message;
 }
