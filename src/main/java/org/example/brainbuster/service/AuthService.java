@@ -32,32 +32,40 @@ public class AuthService {
 
     public AuthResponse register(UserRequest userRequest) {
         if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
-            return new AuthResponse(null, null, "Username already exists");
+            return new AuthResponse(null, null, null, "Username already exists");
         }
 
         UserResponse userResponse = userService.createUser(userRequest);
-        String token = jwtService.generateToken(userResponse.getUsername());
 
-        return new AuthResponse(token, userResponse, "Registration successful");
+        // Получаем User entity для генерации токенов
+        User user = userService.findByUsername(userResponse.getUsername());
+
+        // Генерируем оба токена
+        String token = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        return new AuthResponse(token, refreshToken, userResponse, "Registration successful");
     }
 
     public AuthResponse login(LoginRequest loginRequest) {
         Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
 
         if (userOptional.isEmpty()) {
-            return new AuthResponse(null, null, "Invalid username or password");
+            return new AuthResponse(null, null, null, "Invalid username or password");
         }
 
         User user = userOptional.get();
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPasswordHash())) {
-            return new AuthResponse(null, null, "Invalid username or password");
+            return new AuthResponse(null, null, null, "Invalid username or password");
         }
 
         UserResponse userResponse = convertToUserResponse(user);
-        String token = jwtService.generateToken(user.getUsername());
 
-        return new AuthResponse(token, userResponse, "Login successful");
+        String token = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        return new AuthResponse(token, refreshToken, userResponse, "Login successful");
     }
 
     public boolean validateToken(String token, String username) {
