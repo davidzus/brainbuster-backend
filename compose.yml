@@ -33,7 +33,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./docker/java/Dockerfile
     container_name: brainbuster-app
     ports:
       - "8080:8080"
@@ -49,10 +49,27 @@ services:
       - brainbuster-network
     restart: unless-stopped
 
+  nginx:
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+    container_name: brainbuster-nginx
+    ports:
+      - "80:80"
+    networks:
+      - brainbuster-network
+    depends_on:
+      - app
+    restart: unless-stopped
+    volumes:
+      - nginx-data:/etc/nginx/templates
+
 networks:
   brainbuster-network:
     driver: bridge
 
 volumes:
   mysql-data:
+    driver: local
+  nginx-data:
     driver: local
