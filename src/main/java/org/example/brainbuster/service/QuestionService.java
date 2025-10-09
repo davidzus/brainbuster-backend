@@ -7,6 +7,9 @@ import org.example.brainbuster.dto.question.QuestionUpdateDto;
 import org.example.brainbuster.model.IncorrectAnswer;
 import org.example.brainbuster.model.Question;
 import org.example.brainbuster.repository.QuestionRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -97,6 +100,29 @@ public class QuestionService {
         Question q = questionRepository.findById(id)
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Question " + id + " not found"));
         questionRepository.delete(q);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<QuestionReadDto> search(String category, String difficulty, String type, String q,
+                                        int page, int size, String sort) {
+        Sort s = (sort == null || sort.isBlank())
+                ? Sort.by(Sort.Direction.ASC, "id")
+                : Sort.by(sort.startsWith("-") ? Sort.Direction.DESC : Sort.Direction.ASC,
+                sort.replaceFirst("^-", ""));
+
+        Page<Question> found = questionRepository.search(
+                nullIfBlank(category),
+                nullIfBlank(difficulty),
+                nullIfBlank(type),
+                nullIfBlank(q),
+                PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100), s)
+        );
+
+        return found.map(this::toReadDto);
+    }
+
+    private String nullIfBlank(String s) {
+        return (s == null || s.isBlank()) ? null : s;
     }
 
     public QuestionReadDto toReadDto(Question q) {
