@@ -5,15 +5,20 @@ import org.example.brainbuster.dto.user.UserRequest;
 import org.example.brainbuster.dto.user.UserResponse;
 import org.example.brainbuster.model.User;
 import org.example.brainbuster.repository.UserRepository;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -27,17 +32,15 @@ public class UserService {
         );
     }
 
-    private User toEntity(UserRequest userRequest) {
-        User user = new User();
-        user.setUsername(userRequest.getUsername());
-        user.setPasswordHash(passwordEncoder.encode(userRequest.getPassword()));
-        user.setRole(userRequest.getRole() != null ? userRequest.getRole() : "user");
-        user.setHighScore(0);
-        return user;
-    }
-
     public UserResponse createUser(UserRequest userRequest) {
         User user = toEntity(userRequest);
+        User savedUser = userRepository.save(user);
+        return toUserResponse(savedUser);
+    }
+
+    public UserResponse createAdmin(UserRequest userRequest) {
+        User user = toEntity(userRequest);
+        user.setRole("admin");
         User savedUser = userRepository.save(user);
         return toUserResponse(savedUser);
     }
@@ -81,5 +84,30 @@ public class UserService {
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        List<SimpleGrantedAuthority> authorities = Collections.singletonList(
+                new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase())
+        );
+
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPasswordHash(),
+                authorities
+        );
+    }
+
+    private User toEntity(UserRequest userRequest) {
+        User user = new User();
+        user.setUsername(userRequest.getUsername());
+        user.setPasswordHash(passwordEncoder.encode(userRequest.getPassword()));
+        user.setRole("user");
+        user.setHighScore(0);
+        return user;
     }
 }

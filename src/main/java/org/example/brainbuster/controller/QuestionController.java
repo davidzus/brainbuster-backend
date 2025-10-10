@@ -7,11 +7,13 @@ import org.example.brainbuster.dto.question.QuestionReadDto;
 import org.example.brainbuster.model.Question;
 import org.example.brainbuster.dto.question.QuestionUpdateDto;
 import org.example.brainbuster.service.QuestionService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/questions")
 @RequiredArgsConstructor
@@ -21,6 +23,32 @@ public class QuestionController {
     @GetMapping
     public List<Question> getAllQuestions() {
         return questionService.getAllQuestions();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> search(
+            @RequestParam(value = "category",   required = false) String category,
+            @RequestParam(value = "difficulty", required = false) String difficulty,
+            @RequestParam(value = "type",       required = false) String type,
+            @RequestParam(value = "q",          required = false) String freeText,
+            @RequestParam(value = "page",       required = false) Integer page,
+            @RequestParam(value = "size",       required = false) Integer size,
+            @RequestParam(value = "sort",       required = false) String sort
+    ) {
+        if (page == null && size == null) {
+            // no paging requested → just return the list
+            var results = questionService
+                    .search(category, difficulty, type, freeText, 0, 1000, sort) // cap to a sane max
+                    .getContent();
+            return ResponseEntity.ok(results); // <-- only the array
+        } else {
+            // paging requested → return the Page (with metadata)
+            int p = page == null ? 0 : page;
+            int s = size == null ? 20 : size;
+            return ResponseEntity.ok(
+                    questionService.search(category, difficulty, type, freeText, p, s, sort)
+            );
+        }
     }
 
     @GetMapping("/{id}")
