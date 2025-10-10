@@ -1,15 +1,13 @@
 package org.example.brainbuster.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.brainbuster.dto.user.UserRequest;
-import org.example.brainbuster.dto.user.UserResponse;
+import org.example.brainbuster.model.User;
 import org.example.brainbuster.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -17,14 +15,14 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public List<UserResponse> getAllUsers() {
+    public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable("id") Long id) {
+    public ResponseEntity<User> getUserById(@PathVariable("id") Long id) {
         try {
-            UserResponse user = userService.getUserById(id);
+            User user = userService.getUserById(id);
             return ResponseEntity.ok(user);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -32,15 +30,16 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest userRequest) {
-        UserResponse created = userService.createUser(userRequest);
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        User created = userService.createUser(user);
         return ResponseEntity.status(201).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable("id") Long id, @RequestBody UserRequest userRequest) {
+    public ResponseEntity<User> updateUser(@PathVariable("id") Long id, @RequestBody User user) {
         try {
-            UserResponse updatedUser = userService.updateUser(id, userRequest);
+            user.setId(id);
+            User updatedUser = userService.updateUser(user);
             return ResponseEntity.ok(updatedUser);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
