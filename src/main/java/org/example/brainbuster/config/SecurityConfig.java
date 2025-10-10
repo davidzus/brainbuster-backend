@@ -55,9 +55,6 @@ public class SecurityConfig {
                                 "/error"
                         ).permitAll()
 
-                        .requestMatchers("/api/test/auth").authenticated()
-                        .requestMatchers("/api/test/user").hasRole("USER")
-                        .requestMatchers("/api/test/admin").hasRole("ADMIN")
                         .requestMatchers("/api/game/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/questions/play/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
