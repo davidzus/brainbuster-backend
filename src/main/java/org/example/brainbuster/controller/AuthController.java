@@ -59,33 +59,27 @@ public class AuthController {
     }
 
     @PostMapping("/validate")
-    public ResponseEntity<Boolean> validateToken(@RequestBody ValidateRequest request) {
-        String token = request.getToken();
-        String username = request.getUsername();
-        boolean isValid = authService.validateToken(token, username);
-        return ResponseEntity.ok(isValid);
+    public ResponseEntity<Boolean> validateToken(@RequestBody ValidateRequest req) {
+        var userDetails = userService.loadUserByUsername(req.getUsername());
+        boolean ok = jwtService.isAccessTokenValid(req.getToken(), userDetails);
+        return ResponseEntity.ok(ok);
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshRequest request) {
         String refreshToken = request.getRefreshToken();
-
         try {
             String username = jwtService.extractUsername(refreshToken);
-
-            if (!jwtService.isTokenValid(refreshToken, username)) {
+            if (!jwtService.isRefreshTokenValid(refreshToken, username)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
             User user = userService.findByUsername(username);
-
-            String newToken = jwtService.generateToken(user);
-            String newRefreshToken = jwtService.generateRefreshToken(user);
+            String newToken = jwtService.generateToken(user);               // access
+            String newRefreshToken = jwtService.generateRefreshToken(user); // refresh
 
             UserResponse userResponse = convertToUserResponse(user);
-            AuthResponse response = new AuthResponse(newToken, newRefreshToken, userResponse, "Token refreshed");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(new AuthResponse(newToken, newRefreshToken, userResponse, "Token refreshed"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
