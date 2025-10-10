@@ -1,7 +1,8 @@
 package org.example.brainbuster.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.brainbuster.model.User;
+import org.example.brainbuster.dto.user.UserRequest;
+import org.example.brainbuster.dto.user.UserResponse;
 import org.example.brainbuster.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,14 +16,14 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public List<User> getAllUsers() {
+    public List<UserResponse> getAllUsers() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable("id") Long id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable("id") Long id) {
         try {
-            User user = userService.getUserById(id);
+            UserResponse user = userService.getUserById(id);
             return ResponseEntity.ok(user);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -30,16 +31,15 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User created = userService.createUser(user);
+    public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest userRequest) {
+        UserResponse created = userService.createUser(userRequest);
         return ResponseEntity.status(201).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable("id") Long id, @RequestBody User user) {
+    public ResponseEntity<UserResponse> updateUser(@PathVariable("id") Long id, @RequestBody UserRequest userRequest) {
         try {
-            user.setId(id);
-            User updatedUser = userService.updateUser(user);
+            UserResponse updatedUser = userService.updateUser(id, userRequest);
             return ResponseEntity.ok(updatedUser);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
