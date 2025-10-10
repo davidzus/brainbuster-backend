@@ -68,10 +68,6 @@ public class AuthService {
         return new AuthResponse(token, refreshToken, userResponse, "Login successful");
     }
 
-    public boolean validateToken(String token, String username) {
-        return jwtService.isTokenValid(token, username);
-    }
-
     public String extractUsername(String token) {
         return jwtService.extractUsername(token);
     }
