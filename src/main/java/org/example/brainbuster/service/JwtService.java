@@ -18,6 +18,8 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class JwtService {
     private final JwtProperties jwtProperties;
+    private String rolePrefix = "ROLE_";
+    private String accessPrefix = "access";
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecret());
@@ -29,8 +31,8 @@ public class JwtService {
                 .setSubject(user.getUsername())
                 .claim("userId", user.getId())
                 // store with ROLE_ prefix so hasRole("ADMIN") works out-of-the-box
-                .claim("role", user.getRole().startsWith("ROLE_") ? user.getRole() : "ROLE_" + user.getRole())
-                .claim("type", "access")
+                .claim("role", user.getRole().startsWith(rolePrefix) ? user.getRole() : rolePrefix + user.getRole())
+                .claim("type", accessPrefix)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -41,7 +43,7 @@ public class JwtService {
         return Jwts.builder()
                 .setSubject(user.getUsername())
                 .claim("userId", user.getId())
-                .claim("role", user.getRole().startsWith("ROLE_") ? user.getRole() : "ROLE_" + user.getRole())
+                .claim("role", user.getRole().startsWith(rolePrefix) ? user.getRole() : rolePrefix + user.getRole())
                 .claim("type", "refresh")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshExpiration()))
@@ -61,7 +63,7 @@ public class JwtService {
         Claims c = extractAllClaims(token);
         boolean notExpired = c.getExpiration() != null && c.getExpiration().after(new Date());
         boolean subjectMatches = user.getUsername().equals(c.getSubject());
-        boolean accessType = "access".equals(c.get("type", String.class));
+        boolean accessType = accessPrefix.equals(c.get("type", String.class));
         return notExpired && subjectMatches && accessType;
     }
 
@@ -81,7 +83,7 @@ public class JwtService {
         Claims c = extractAllClaims(token);
         return c.getExpiration().after(new Date())
                 && user.getUsername().equals(c.getSubject())
-                && "access".equals(c.get("type", String.class));
+                && accessPrefix.equals(c.get("type", String.class));
     }
 
     public boolean isRefreshTokenValid(String token, String username) {

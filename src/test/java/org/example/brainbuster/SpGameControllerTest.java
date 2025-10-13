@@ -38,14 +38,14 @@ class SpGameControllerTest {
         var principal = mock(org.springframework.security.core.userdetails.UserDetails.class);
         when(principal.getUsername()).thenReturn("alice");
 
-        when(service.create(eq(request), eq("alice"))).thenReturn(created);
+        when(service.create(request, "alice")).thenReturn(created);
 
         ResponseEntity<CreateSpSessionResponse> response = controller.create(principal, request);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(sessionId, response.getBody().sessionId());
-        verify(service).create(eq(request), eq("alice"));
+        verify(service).create(request, "alice");
         verifyNoMoreInteractions(service);
     }
 
@@ -56,12 +56,12 @@ class SpGameControllerTest {
         var principal = mock(org.springframework.security.core.userdetails.UserDetails.class);
         when(principal.getUsername()).thenReturn("alice");
 
-        when(service.create(eq(request), eq("alice")))
+        when(service.create(request, "alice"))
                 .thenThrow(new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY));
 
         assertThrows(ResponseStatusException.class, () -> controller.create(principal, request));
 
-        verify(service).create(eq(request), eq("alice"));
+        verify(service).create(request,"alice");
         verifyNoMoreInteractions(service);
     }
 
@@ -113,7 +113,7 @@ class SpGameControllerTest {
         UUID id = UUID.randomUUID();
         String choiceId = UUID.randomUUID().toString();
         AnswerRequest request = new AnswerRequest(choiceId);
-        when(service.answer(id, choiceId.toString()))
+        when(service.answer(id, choiceId))
                 .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Already answered"));
 
         assertThrows(ResponseStatusException.class, () -> controller.answer(id, request));

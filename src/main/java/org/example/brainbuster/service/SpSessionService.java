@@ -2,7 +2,6 @@ package org.example.brainbuster.service;
 
 import org.example.brainbuster.dto.game.*;
 import org.example.brainbuster.dto.question.QuestionReadDto;
-import org.example.brainbuster.model.User;
 import org.example.brainbuster.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -10,7 +9,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Service
 public class SpSessionService {
@@ -52,7 +50,13 @@ public class SpSessionService {
         Sq(long questionId, String prompt, List<Choice> choices, String correctChoiceId) {
             this.questionId = questionId; this.prompt = prompt; this.choices = choices; this.correctChoiceId = correctChoiceId;
         }
-        static final class Choice { final String id; final String text; Choice(String id, String text){ this.id=id; this.text=text; } }
+        static final class Choice {
+            final String id;
+            final String text;
+            Choice(String id, String text) {
+                this.id=id; this.text=text;
+            }
+        }
     }
 
     public Created create(CreateSpSessionRequest req, String playerUsername) {
@@ -70,7 +74,7 @@ public class SpSessionService {
         if (pool.size() > 1) Collections.shuffle(pool);
         List<QuestionReadDto> picked = pool.subList(0, req.numQuestions());
 
-        List<Sq> sqs = picked.stream().map(this::toSessionQuestion).collect(Collectors.toList());
+        List<Sq> sqs = picked.stream().map(this::toSessionQuestion).toList();
         Session s = new Session(playerUsername, sqs);
         store.put(s.id, s);
         return new Created(s.id, s.state, s.total());
