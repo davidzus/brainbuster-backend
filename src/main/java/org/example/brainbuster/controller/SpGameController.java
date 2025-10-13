@@ -4,6 +4,8 @@ import org.example.brainbuster.dto.game.*;
 import org.example.brainbuster.service.SpSessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,8 +24,12 @@ public class SpGameController {
     }
 
     @PostMapping
-    public ResponseEntity<CreateSpSessionResponse> create(@Valid @RequestBody CreateSpSessionRequest req) {
-        var s = service.create(req);
+    public ResponseEntity<CreateSpSessionResponse> create(
+            @AuthenticationPrincipal UserDetails principal,
+            @Valid @RequestBody CreateSpSessionRequest req
+    ) {
+        String username = principal.getUsername(); // or however you identify the user
+        var s = service.create(req, username);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new CreateSpSessionResponse(s.id(), s.state(), s.totalQuestions()));
     }

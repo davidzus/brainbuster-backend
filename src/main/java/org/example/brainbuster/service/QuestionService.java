@@ -82,13 +82,17 @@ public class QuestionService {
         }
 
         if (dto.incorrectAnswers() != null) {
-            for (String text : dto.incorrectAnswers()) {
-                if (text == null) continue;
-                var t = text.trim();
-                if (t.isEmpty() || t.equals(dto.correctAnswer())) continue;
-                IncorrectAnswer ia = new IncorrectAnswer();
-                ia.setText(t);
-                q.addIncorrectAnswer(ia); // sets both sides
+            for (String raw : dto.incorrectAnswers()) {
+                String t = (raw == null) ? null : raw.trim();
+                boolean valid = t != null
+                        && !t.isEmpty()
+                        && !t.equals(dto.correctAnswer());
+
+                if (valid) {
+                    IncorrectAnswer ia = new IncorrectAnswer();
+                    ia.setText(t);
+                    q.addIncorrectAnswer(ia); // sets both sides
+                }
             }
         }
 
@@ -105,10 +109,15 @@ public class QuestionService {
     @Transactional(readOnly = true)
     public Page<QuestionReadDto> search(String category, String difficulty, String type, String q,
                                         int page, int size, String sort) {
-        Sort s = (sort == null || sort.isBlank())
-                ? Sort.by(Sort.Direction.ASC, "id")
-                : Sort.by(sort.startsWith("-") ? Sort.Direction.DESC : Sort.Direction.ASC,
-                sort.replaceFirst("^-", ""));
+        Sort s;
+        if (sort == null || sort.isBlank()) {
+            s = Sort.by(Sort.Direction.ASC, "id");
+        } else {
+            boolean desc = sort.startsWith("-");
+            Sort.Direction dir = desc ? Sort.Direction.DESC : Sort.Direction.ASC;
+            String prop = desc ? sort.substring(1) : sort;
+            s = Sort.by(dir, prop);
+        }
 
         Page<Question> found = questionRepository.search(
                 nullIfBlank(category),

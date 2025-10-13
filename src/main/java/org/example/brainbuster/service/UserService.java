@@ -3,6 +3,7 @@ package org.example.brainbuster.service;
 import lombok.RequiredArgsConstructor;
 import org.example.brainbuster.dto.user.UserRequest;
 import org.example.brainbuster.dto.user.UserResponse;
+import org.example.brainbuster.exception.UserNotFoundException;
 import org.example.brainbuster.model.User;
 import org.example.brainbuster.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,8 +48,7 @@ public class UserService implements UserDetailsService {
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(this::toUserResponse)
-                .collect(Collectors.toList());
+                .map(this::toUserResponse).toList();
     }
 
     public UserResponse getUserById(Long id) {
@@ -60,9 +59,9 @@ public class UserService implements UserDetailsService {
 
     public UserResponse updateUser(Long id, UserRequest userRequest) {
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found with id: " + id);
+            throw new UserNotFoundException(id);
         }
-        
+
         User user = toEntity(userRequest);
         user.setId(id);
         User updatedUser = userRepository.save(user);
@@ -70,10 +69,9 @@ public class UserService implements UserDetailsService {
     }
 
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found with id: " + id);
-        }
-        userRepository.deleteById(id);
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        userRepository.delete(user);
     }
 
     public User getUserEntityById(Long id) {
