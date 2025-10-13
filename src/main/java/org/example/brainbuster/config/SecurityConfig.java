@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -18,6 +18,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private String roleAdmin = "ADMIN";
+    private String roleUser = "USER";
 
     @Bean
     public AuthenticationProvider authenticationProvider(
@@ -55,12 +57,12 @@ public class SecurityConfig {
                                 "/error"
                         ).permitAll()
 
-                        .requestMatchers("/api/game/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/questions/play/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/users/**").hasRole("ADMIN")
-                        .requestMatchers("/api/questions/manage/**").hasRole("ADMIN")
-                        .requestMatchers("/api/sp/**").hasAnyRole("USER","ADMIN")
+                        .requestMatchers("/api/game/**").hasAnyRole(roleUser, roleAdmin)
+                        .requestMatchers("/api/questions/play/**").hasAnyRole(roleUser, roleAdmin)
+                        .requestMatchers("/api/admin/**").hasRole(roleAdmin)
+                        .requestMatchers("/api/users/**").hasRole(roleAdmin)
+                        .requestMatchers("/api/questions/manage/**").hasRole(roleAdmin)
+                        .requestMatchers("/api/sp/**").hasAnyRole(roleUser,roleAdmin)
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)

@@ -7,7 +7,7 @@ import org.example.brainbuster.dto.question.QuestionReadDto;
 import org.example.brainbuster.model.Question;
 import org.example.brainbuster.dto.question.QuestionUpdateDto;
 import org.example.brainbuster.service.QuestionService;
-import org.springframework.data.domain.Page;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +26,7 @@ public class QuestionController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<?> search(
+    public ResponseEntity<Object> search(
             @RequestParam(value = "category",   required = false) String category,
             @RequestParam(value = "difficulty", required = false) String difficulty,
             @RequestParam(value = "type",       required = false) String type,
