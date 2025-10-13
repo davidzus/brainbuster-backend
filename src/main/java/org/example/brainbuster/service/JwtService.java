@@ -20,7 +20,6 @@ public class JwtService {
     private final JwtProperties jwtProperties;
 
     private SecretKey getSigningKey() {
-        // secret should be Base64 in config; ensures proper key size for HS256
         byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecret());
         return Keys.hmacShaKeyFor(keyBytes);
     }
@@ -80,17 +79,15 @@ public class JwtService {
 
     public boolean isAccessTokenValid(String token, UserDetails user) {
         Claims c = extractAllClaims(token);
-        boolean ok = c.getExpiration().after(new Date())
+        return c.getExpiration().after(new Date())
                 && user.getUsername().equals(c.getSubject())
                 && "access".equals(c.get("type", String.class));
-        return ok;
     }
 
     public boolean isRefreshTokenValid(String token, String username) {
         Claims c = extractAllClaims(token);
-        boolean ok = c.getExpiration().after(new Date())
+        return c.getExpiration().after(new Date())
                 && username.equals(c.getSubject())
                 && "refresh".equals(c.get("type", String.class));
-        return ok;
     }
 }

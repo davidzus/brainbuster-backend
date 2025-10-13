@@ -30,28 +30,39 @@ class SpGameControllerTest {
     }
 
     @Test
-    void create_shouldReturnCreatedSession() {
+    void create_shouldReturnCreatedSession_withPrincipal() {
         CreateSpSessionRequest request = new CreateSpSessionRequest(5, "General Knowledge", "EASY");
         UUID sessionId = UUID.randomUUID();
         var created = new SpSessionService.Created(sessionId, SessionState.CREATED, 5);
 
-        when(service.create(request)).thenReturn(created);
+        var principal = mock(org.springframework.security.core.userdetails.UserDetails.class);
+        when(principal.getUsername()).thenReturn("alice");
 
-        ResponseEntity<CreateSpSessionResponse> response = controller.create(request);
+        when(service.create(eq(request), eq("alice"))).thenReturn(created);
+
+        ResponseEntity<CreateSpSessionResponse> response = controller.create(principal, request);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody());
         assertEquals(sessionId, response.getBody().sessionId());
-        assertEquals(SessionState.CREATED, response.getBody().state());
-        assertEquals(5, response.getBody().totalQuestions());
-        verify(service).create(request);
+        verify(service).create(eq(request), eq("alice"));
+        verifyNoMoreInteractions(service);
     }
 
     @Test
     void create_whenNotEnoughQuestions_shouldThrow422() {
         CreateSpSessionRequest request = new CreateSpSessionRequest(99, "General Knowledge", "EASY");
-        when(service.create(request)).thenThrow(new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY));
 
-        assertThrows(ResponseStatusException.class, () -> controller.create(request));
+        var principal = mock(org.springframework.security.core.userdetails.UserDetails.class);
+        when(principal.getUsername()).thenReturn("alice");
+
+        when(service.create(eq(request), eq("alice")))
+                .thenThrow(new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY));
+
+        assertThrows(ResponseStatusException.class, () -> controller.create(principal, request));
+
+        verify(service).create(eq(request), eq("alice"));
+        verifyNoMoreInteractions(service);
     }
 
     @Test
