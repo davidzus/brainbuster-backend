@@ -1,0 +1,24 @@
+services:
+  app:
+    ports:
+      - "8080:8080"
+  nginx:
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+    container_name: brainbuster-nginx
+    ports:
+      - "80:80"
+    networks:
+      - brainbuster-network
+    depends_on:
+      - app
+    restart: unless-stopped
+    volumes:
+      - nginx-data:/etc/nginx/templates
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  nginx-data:
+    driver: local
