@@ -3,8 +3,12 @@ package org.example.brainbuster.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.brainbuster.dto.user.UserRequest;
 import org.example.brainbuster.dto.user.UserResponse;
+import org.example.brainbuster.dto.user.UserHighscore;
+import org.example.brainbuster.service.JwtService;
 import org.example.brainbuster.service.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final JwtService jwtServcie;
 
     @GetMapping
     public List<UserResponse> getAllUsers() {
@@ -29,6 +34,17 @@ public class UserController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/userhighscore")
+    public ResponseEntity<UserHighscore> getUserHighscore(@AuthenticationPrincipal UserDetails principal) {
+        String username = principal.getUsername();
+        return ResponseEntity.ok(userService.getHighscore(username));
+    }
+
+    @GetMapping("/highscores")
+    public ResponseEntity<List<UserHighscore>> getAllHighscores() {
+        return ResponseEntity.ok(userService.getAllHighscores());
     }
 
     @PostMapping

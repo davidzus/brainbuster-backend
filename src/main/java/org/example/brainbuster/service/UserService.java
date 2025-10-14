@@ -1,6 +1,7 @@
 package org.example.brainbuster.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.brainbuster.dto.user.UserHighscore;
 import org.example.brainbuster.dto.user.UserRequest;
 import org.example.brainbuster.dto.user.UserResponse;
 import org.example.brainbuster.exception.UserNotFoundException;
@@ -30,6 +31,16 @@ public class UserService implements UserDetailsService {
             user.getHighScore(),
             user.getCreatedAt()
         );
+    }
+
+    public UserHighscore getHighscore(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+        return new UserHighscore(user.getUsername(), user.getHighScore());
+    }
+
+    public List<UserHighscore> getAllHighscores() {
+        return userRepository.findAllHighscores();
     }
 
     public UserResponse createUser(UserRequest userRequest) {
