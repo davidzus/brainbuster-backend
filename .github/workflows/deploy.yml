@@ -13,7 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # NEW: compute lowercase owner and image name
       - name: Compute image name (lowercase owner)
         id: prep
         run: |
@@ -47,20 +46,18 @@ jobs:
             ${{ steps.prep.outputs.IMAGE_NAME }}:latest
             ${{ steps.prep.outputs.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: SSH Deploy (port 3129)
+      - name: SSH Deploy (port 22 on VPS)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
+          username: ${{ secrets.SERVER_USER }}   # deploy
           key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 3129
+          port: 22
           script: |
             set -e
             cd ${{ secrets.SERVER_WORKDIR }}
             export IMAGE_TAG=latest
-
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull app
             docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
             docker system prune -af --volumes || true
