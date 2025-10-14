@@ -54,16 +54,13 @@ jobs:
             set -e
             cd ${{ secrets.SERVER_WORKDIR }}
 
-            # Ensure .env exists (we already created it, but keep idempotent)
             if [ ! -f .env ]; then
               echo "Missing .env"; exit 1
             fi
 
-            # Pull latest image and restart app
             export IMAGE_TAG=latest
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull app
             docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
 
-            # Optional cleanup
             docker system prune -af --volumes || true
