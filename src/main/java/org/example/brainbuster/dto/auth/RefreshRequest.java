@@ -3,14 +3,10 @@ package org.example.brainbuster.dto.auth;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.brainbuster.dto.user.UserResponse;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthResponse {
-    private String token;
+public class RefreshRequest {
     private String refreshToken;
-    private UserResponse user;
-    private String message;
 }

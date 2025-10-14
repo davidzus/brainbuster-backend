@@ -4,9 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.example.brainbuster.dto.question.QuestionCreateDto;
 import org.example.brainbuster.dto.question.QuestionReadDto;
 import org.example.brainbuster.dto.question.QuestionUpdateDto;
+import org.example.brainbuster.exception.QuestionNotFoundException;
 import org.example.brainbuster.model.IncorrectAnswer;
 import org.example.brainbuster.model.Question;
 import org.example.brainbuster.repository.QuestionRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,14 +29,12 @@ public class QuestionService {
 
     @Transactional(readOnly = true)
     public Optional<QuestionReadDto> getQuestionByIdDto(Long id) {
-        // use findById(...) if you used @EntityGraph; otherwise use findByIdWithAnswers(...)
         return questionRepository.findById(id)
                 .map(this::toReadDto);
     }
 
     @Transactional
     public Question createQuestion(QuestionCreateDto dto) {
-        // Basic sanity guards (avoid duplicates, avoid equal to correct)
         var wrongs = new LinkedHashSet<String>();
         for (String s : dto.incorrectAnswers()) {
             String trimmed = s.trim();
@@ -63,7 +65,7 @@ public class QuestionService {
     @Transactional
     public Question updateQuestion(Long id, QuestionUpdateDto dto) {
         Question q = questionRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Question "+id+" not found"));
+                .orElseThrow(() -> new QuestionNotFoundException(id));
 
         q.setType(dto.type().trim());
         q.setDifficulty(dto.difficulty().trim());
@@ -79,24 +81,56 @@ public class QuestionService {
         }
 
         if (dto.incorrectAnswers() != null) {
-            for (String text : dto.incorrectAnswers()) {
-                if (text == null) continue;
-                var t = text.trim();
-                if (t.isEmpty() || t.equals(dto.correctAnswer())) continue;
-                IncorrectAnswer ia = new IncorrectAnswer();
-                ia.setText(t);
-                q.addIncorrectAnswer(ia); // sets both sides
+            for (String raw : dto.incorrectAnswers()) {
+                String t = (raw == null) ? null : raw.trim();
+                boolean valid = t != null
+                        && !t.isEmpty()
+                        && !t.equals(dto.correctAnswer());
+
+                if (valid) {
+                    IncorrectAnswer ia = new IncorrectAnswer();
+                    ia.setText(t);
+                    q.addIncorrectAnswer(ia);
+                }
             }
         }
 
-        return questionRepository.save(q); // cascades MERGE/PERSIST
+        return questionRepository.save(q);
     }
 
     @Transactional
     public void deleteQuestion(Long id) {
         Question q = questionRepository.findById(id)
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Question " + id + " not found"));
+                .orElseThrow(() -> new QuestionNotFoundException(id));
         questionRepository.delete(q);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<QuestionReadDto> search(String category, String difficulty, String type, String q,
+                                        int page, int size, String sort) {
+        Sort s;
+        if (sort == null || sort.isBlank()) {
+            s = Sort.by(Sort.Direction.ASC, "id");
+        } else {
+            boolean desc = sort.startsWith("-");
+            Sort.Direction dir = desc ? Sort.Direction.DESC : Sort.Direction.ASC;
+            String prop = desc ? sort.substring(1) : sort;
+            s = Sort.by(dir, prop);
+        }
+
+        Page<Question> found = questionRepository.search(
+                nullIfBlank(category),
+                nullIfBlank(difficulty),
+                nullIfBlank(type),
+                nullIfBlank(q),
+                PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100), s)
+        );
+
+        return found.map(this::toReadDto);
+    }
+
+    private String nullIfBlank(String s) {
+        return (s == null || s.isBlank()) ? null : s;
     }
 
     public QuestionReadDto toReadDto(Question q) {
