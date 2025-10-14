@@ -57,11 +57,11 @@ public class SecurityConfig {
                                 "/error"
                         ).permitAll()
 
-                        .requestMatchers("/api/game/**").hasAnyRole(ROLE_USER, ROLE_ADMIN)
-                        .requestMatchers("/api/questions/play/**").hasAnyRole(ROLE_USER, ROLE_ADMIN)
-                        .requestMatchers("/api/admin/**").hasRole(ROLE_ADMIN)
+                        .requestMatchers("/api/users/highscores").hasAnyRole(ROLE_USER,ROLE_ADMIN)
+                        .requestMatchers("/api/users/userhighscore").hasAnyRole(ROLE_USER,ROLE_ADMIN)
                         .requestMatchers("/api/users/**").hasRole(ROLE_ADMIN)
-                        .requestMatchers("/api/questions/manage/**").hasRole(ROLE_ADMIN)
+                        .requestMatchers("/api/questions").hasAnyRole(ROLE_USER,ROLE_ADMIN)
+                        .requestMatchers("/api/questions/**").hasAnyRole(ROLE_ADMIN)
                         .requestMatchers("/api/sp/**").hasAnyRole(ROLE_USER,ROLE_ADMIN)
                         .anyRequest().authenticated()
                 )
