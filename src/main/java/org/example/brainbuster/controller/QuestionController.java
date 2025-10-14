@@ -36,13 +36,11 @@ public class QuestionController {
             @RequestParam(value = "sort",       required = false) String sort
     ) {
         if (page == null && size == null) {
-            // no paging requested → just return the list
             var results = questionService
-                    .search(category, difficulty, type, freeText, 0, 1000, sort) // cap to a sane max
+                    .search(category, difficulty, type, freeText, 0, 1000, sort)
                     .getContent();
-            return ResponseEntity.ok(results); // <-- only the array
+            return ResponseEntity.ok(results);
         } else {
-            // paging requested → return the Page (with metadata)
             int p = page == null ? 0 : page;
             int s = size == null ? 20 : size;
             return ResponseEntity.ok(
@@ -81,9 +79,9 @@ public class QuestionController {
     public ResponseEntity<Void> deleteQuestion(@PathVariable("id") Long id) {
         try {
             questionService.deleteQuestion(id);
-            return ResponseEntity.noContent().build(); // 204
+            return ResponseEntity.noContent().build();
         } catch (jakarta.persistence.EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();  // 404
+            return ResponseEntity.notFound().build();
         }
     }
 }

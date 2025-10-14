@@ -50,12 +50,8 @@ public class SpSessionService {
         Sq(long questionId, String prompt, List<Choice> choices, String correctChoiceId) {
             this.questionId = questionId; this.prompt = prompt; this.choices = choices; this.correctChoiceId = correctChoiceId;
         }
-        static final class Choice {
-            final String id;
-            final String text;
-            Choice(String id, String text) {
-                this.id=id; this.text=text;
-            }
+
+        record Choice(String id, String text) {
         }
     }
 
@@ -129,7 +125,6 @@ public class SpSessionService {
         return new Summary(s.id, s.state, s.cur, s.total(), answered, s.correctCount);
     }
 
-    // --- helpers ---
     private Session get(UUID id) {
         Session s = store.get(id);
         if (s == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found");

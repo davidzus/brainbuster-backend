@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.brainbuster.dto.question.QuestionCreateDto;
 import org.example.brainbuster.dto.question.QuestionReadDto;
 import org.example.brainbuster.dto.question.QuestionUpdateDto;
+import org.example.brainbuster.exception.QuestionNotFoundException;
 import org.example.brainbuster.model.IncorrectAnswer;
 import org.example.brainbuster.model.Question;
 import org.example.brainbuster.repository.QuestionRepository;
@@ -28,14 +29,12 @@ public class QuestionService {
 
     @Transactional(readOnly = true)
     public Optional<QuestionReadDto> getQuestionByIdDto(Long id) {
-        // use findById(...) if you used @EntityGraph; otherwise use findByIdWithAnswers(...)
         return questionRepository.findById(id)
                 .map(this::toReadDto);
     }
 
     @Transactional
     public Question createQuestion(QuestionCreateDto dto) {
-        // Basic sanity guards (avoid duplicates, avoid equal to correct)
         var wrongs = new LinkedHashSet<String>();
         for (String s : dto.incorrectAnswers()) {
             String trimmed = s.trim();
@@ -66,7 +65,7 @@ public class QuestionService {
     @Transactional
     public Question updateQuestion(Long id, QuestionUpdateDto dto) {
         Question q = questionRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Question "+id+" not found"));
+                .orElseThrow(() -> new QuestionNotFoundException(id));
 
         q.setType(dto.type().trim());
         q.setDifficulty(dto.difficulty().trim());
@@ -91,18 +90,18 @@ public class QuestionService {
                 if (valid) {
                     IncorrectAnswer ia = new IncorrectAnswer();
                     ia.setText(t);
-                    q.addIncorrectAnswer(ia); // sets both sides
+                    q.addIncorrectAnswer(ia);
                 }
             }
         }
 
-        return questionRepository.save(q); // cascades MERGE/PERSIST
+        return questionRepository.save(q);
     }
 
     @Transactional
     public void deleteQuestion(Long id) {
         Question q = questionRepository.findById(id)
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Question " + id + " not found"));
+                .orElseThrow(() -> new QuestionNotFoundException(id));
         questionRepository.delete(q);
     }
 

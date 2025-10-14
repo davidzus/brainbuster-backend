@@ -37,10 +37,8 @@ public class AuthService {
 
         UserResponse userResponse = userService.createUser(userRequest);
 
-        // Получаем User entity для генерации токенов
         User user = userService.findByUsername(userResponse.getUsername());
 
-        // Генерируем оба токена
         String token = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
@@ -66,9 +64,5 @@ public class AuthService {
         String refreshToken = jwtService.generateRefreshToken(user);
 
         return new AuthResponse(token, refreshToken, userResponse, "Login successful");
-    }
-
-    public String extractUsername(String token) {
-        return jwtService.extractUsername(token);
     }
 }

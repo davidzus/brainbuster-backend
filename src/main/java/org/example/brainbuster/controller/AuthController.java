@@ -74,8 +74,8 @@ public class AuthController {
             }
 
             User user = userService.findByUsername(username);
-            String newToken = jwtService.generateToken(user);               // access
-            String newRefreshToken = jwtService.generateRefreshToken(user); // refresh
+            String newToken = jwtService.generateToken(user);
+            String newRefreshToken = jwtService.generateRefreshToken(user);
 
             UserResponse userResponse = convertToUserResponse(user);
             return ResponseEntity.ok(new AuthResponse(newToken, newRefreshToken, userResponse, "Token refreshed"));

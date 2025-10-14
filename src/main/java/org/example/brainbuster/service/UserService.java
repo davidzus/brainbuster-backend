@@ -38,13 +38,6 @@ public class UserService implements UserDetailsService {
         return toUserResponse(savedUser);
     }
 
-    public UserResponse createAdmin(UserRequest userRequest) {
-        User user = toEntity(userRequest);
-        user.setRole("admin");
-        User savedUser = userRepository.save(user);
-        return toUserResponse(savedUser);
-    }
-
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll()
                 .stream()
@@ -53,7 +46,7 @@ public class UserService implements UserDetailsService {
 
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new UserNotFoundException(id));
         return toUserResponse(user);
     }
 
@@ -74,20 +67,15 @@ public class UserService implements UserDetailsService {
         userRepository.delete(user);
     }
 
-    public User getUserEntityById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-    }
-
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
+                .orElseThrow(() -> new UserNotFoundException(username));
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+                .orElseThrow(() -> new UserNotFoundException(username));
 
         List<SimpleGrantedAuthority> authorities = Collections.singletonList(
                 new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase())
