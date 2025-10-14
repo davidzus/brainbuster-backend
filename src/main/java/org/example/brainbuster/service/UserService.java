@@ -33,6 +33,12 @@ public class UserService implements UserDetailsService {
         );
     }
 
+    public UserResponse getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+        return toUserResponse(user);
+    }
+
     public UserHighscore getHighscore(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(username));

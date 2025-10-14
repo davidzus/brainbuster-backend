@@ -36,6 +36,11 @@ public class UserController {
         }
     }
 
+    @GetMapping("/getCurrentUser")
+    public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal UserDetails principal) {
+        return ResponseEntity.ok(userService.getUserByUsername(principal.getUsername()));
+    }
+
     @GetMapping("/userhighscore")
     public ResponseEntity<UserHighscore> getUserHighscore(@AuthenticationPrincipal UserDetails principal) {
         String username = principal.getUsername();
