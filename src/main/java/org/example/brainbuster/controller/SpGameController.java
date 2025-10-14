@@ -28,7 +28,7 @@ public class SpGameController {
             @AuthenticationPrincipal UserDetails principal,
             @Valid @RequestBody CreateSpSessionRequest req
     ) {
-        String username = principal.getUsername(); // or however you identify the user
+        String username = principal.getUsername();
         var s = service.create(req, username);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new CreateSpSessionResponse(s.id(), s.state(), s.totalQuestions()));

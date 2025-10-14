@@ -18,8 +18,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private String roleAdmin = "ADMIN";
-    private String roleUser = "USER";
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_USER = "USER";
 
     @Bean
     public AuthenticationProvider authenticationProvider(
@@ -57,12 +57,12 @@ public class SecurityConfig {
                                 "/error"
                         ).permitAll()
 
-                        .requestMatchers("/api/game/**").hasAnyRole(roleUser, roleAdmin)
-                        .requestMatchers("/api/questions/play/**").hasAnyRole(roleUser, roleAdmin)
-                        .requestMatchers("/api/admin/**").hasRole(roleAdmin)
-                        .requestMatchers("/api/users/**").hasRole(roleAdmin)
-                        .requestMatchers("/api/questions/manage/**").hasRole(roleAdmin)
-                        .requestMatchers("/api/sp/**").hasAnyRole(roleUser,roleAdmin)
+                        .requestMatchers("/api/game/**").hasAnyRole(ROLE_USER, ROLE_ADMIN)
+                        .requestMatchers("/api/questions/play/**").hasAnyRole(ROLE_USER, ROLE_ADMIN)
+                        .requestMatchers("/api/admin/**").hasRole(ROLE_ADMIN)
+                        .requestMatchers("/api/users/**").hasRole(ROLE_ADMIN)
+                        .requestMatchers("/api/questions/manage/**").hasRole(ROLE_ADMIN)
+                        .requestMatchers("/api/sp/**").hasAnyRole(ROLE_USER,ROLE_ADMIN)
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
