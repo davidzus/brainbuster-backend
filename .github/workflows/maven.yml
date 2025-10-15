@@ -9,7 +9,6 @@ on:
 permissions:
   contents: read
   security-events: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,32 +33,25 @@ jobs:
             **/target/*.jar
           if-no-files-found: ignore
 
-  sonarcloud:
-    name: SonarCloud (SAST)
-    needs: build
+  semgrep:
+    name: Semgrep (SAST)
     runs-on: ubuntu-latest
-    env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
-      SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Run Semgrep and generate SARIF
+        uses: returntocorp/semgrep-action@v1
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
+          config: |
+            p/java
+            p/owasp-top-ten
+          generateSarif: true
+          publishResults: false
 
-      # Runs unit tests + code coverage if configured, plus Sonar analysis
-      - name: Analyze with SonarCloud
-        run: |
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
-            -Dsonar.organization="${SONAR_ORGANIZATION}" \
-            -Dsonar.host.url="https://sonarcloud.io" \
-            -Dsonar.login="${SONAR_TOKEN}"
+      - name: Upload Semgrep SARIF to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
 
   depcheck:
     name: OWASP Dependency-Check (Vuln scan)
@@ -68,7 +60,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # GitHub Action wrapper around OWASP Dependency-Check
       - name: Run OWASP Dependency-Check
         uses: dependency-check/Dependency-Check_Action@v4
         with:
@@ -79,6 +70,7 @@ jobs:
           args: >
             --failOnCVSS 7
             --enableRetired
+
       - name: Upload Dependency-Check reports
         uses: actions/upload-artifact@v4
         with:
@@ -91,18 +83,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # full history helps secret detection
+          fetch-depth: 0
 
-      - name: Run Gitleaks
+      - name: Prepare reports dir
+        run: mkdir -p reports
+
+      - name: Run Gitleaks (SARIF)
         uses: gitleaks/gitleaks-action@v2
         with:
           args: >
             detect
+            --source .
             --no-git
             --report-format sarif
-            --report-path gitleaks.sarif
+            --report-path ./reports/gitleaks.sarif
+
+      - name: Verify SARIF (debug)
+        run: |
+          ls -lah reports || true
+          test -f ./reports/gitleaks.sarif && head -n 20 ./reports/gitleaks.sarif || echo "No SARIF file produced"
 
       - name: Upload SARIF to Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: gitleaks.sarif
+          sarif_file: ./reports/gitleaks.sarif
